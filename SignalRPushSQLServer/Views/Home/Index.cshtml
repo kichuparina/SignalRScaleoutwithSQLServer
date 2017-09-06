@@ -1,0 +1,153 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+    Layout = null;
+}
+
+
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+
+<script src="~/Scripts/jquery.signalR-2.2.2.min.js"></script>
+<script src="http://localhost:31/signalr/hubs"></script>
+
+<script type="text/javascript">
+    var isConnectedToPushServer = false;
+
+    //periodicRefresh method is called when client takes time to connect to signalr.
+    var periodicRefresh;
+    $(function () {
+
+        //The generated proxy and what it does for you
+        //You can program a JavaScript client to communicate with a SignalR service with or without a proxy that SignalR generates for you. What the proxy does for you is simplify the syntax of the code you use to connect, write methods that the server calls, and call methods on the server.
+        //When you write code to call server methods, the generated proxy enables you to use syntax that looks as though you were executing a local function: you can write serverMethod(arg1, arg2) instead of invoke('serverMethod', arg1, arg2). The generated proxy syntax also enables an immediate and intelligible client-side error if you mistype a server method name. And if you manually create the file that defines the proxies, you can also get IntelliSense support for writing code that calls server methods.
+
+
+
+
+
+        //SignalR With proxy:
+
+
+
+        $.connection.hub.logging = true;
+      /// 
+        // Declare a proxy to reference the hub.
+        var chat = $.connection.chatHub;
+
+        // By default, the hub location is the current server; 
+        //if you are connecting to a different server, specify the URL before calling the start method
+       // $.connection.hub.url = 'http://localhost:31/signalr';
+
+    
+        // Create a function that the hub can call to broadcast messages.
+
+    
+
+        chat.client.broadcastMessage = function (name, message) {
+            // Html encode display name and message.
+            var encodedName = $('<div />').text(name).html();
+            var encodedMsg = $('<div />').text(message).html();
+            // Add the message to the page.
+            $('#discussion').append('<li><strong>' + encodedName + '</strong>:  ' + encodedMsg + '</li>');
+        };
+
+
+
+
+        // Get the user name and store it to prepend to messages.
+        $('#displayname').val(prompt('Enter your name:', ''));
+        // Set initial focus to message input box.
+        $('#message').focus();
+
+
+        //define transport
+        $.connection.hub.start({ transport: ['webSockets', 'longPolling', 'foreverFrame', 'serverSentEvents'] });
+        // Start the connection.
+
+
+        var tryingToReconnect = false;
+
+        $.connection.hub.reconnecting(function () {
+            console.log("reconnecting");
+            tryingToReconnect = true;
+        });
+
+        $.connection.hub.reconnected(function () {
+            console.log("reconnected");
+            tryingToReconnect = false;
+        });
+
+
+
+
+        start();
+
+        function start()
+        {
+            $.connection.hub.start().done(function () {
+                $('#sendmessage').click(function () {
+                    // Call the Send method on the hub.
+                    chat.server.send($('#displayname').val(), $('#message').val());
+                    // Clear text box and reset focus for next comment.
+                    $('#message').val('').focus();
+                });
+
+                //Client code that displays the transport method used by a connection
+                console.log("transport: " + $.connection.hub.transport.name);
+
+                //ConnectionID ID
+                var connectionID = $.connection.hub.id;
+                console.log("connection ID: " + connectionID);
+                isConnectedToPushServer = true;
+
+
+
+                //stop timer. Now user connectd to push server
+                clearTimeout(periodicRefresh);
+            }).fail(function () {
+                isConnectedToPushServer = false;
+                console.log('Could not connect to signalr!');
+
+                periodicRefresh = setTimeout(function () {
+
+                    //get data form server using periodic ajax call
+                    //write your ajax call for getting data
+                    console.log("timer call....s");
+
+                }, 3000);
+               
+            });
+        }
+
+
+        $.connection.hub.connectionSlow(function () {
+            console.log("connectionSlow...");
+        });
+      
+       
+
+        $.connection.hub.disconnected(function () {
+            console.log("disconnect");
+            isConnectedToPushServer = false;
+            if (tryingToReconnect) {
+                console.log('notify user');
+            }
+            setTimeout(function () {
+                start();
+            }, 5000);
+           
+        });
+
+
+    });
+</script>
+
+
+
+<div class="jumbotron">
+    <input type="hidden" id="displayname" />
+
+    <textarea id="message"></textarea>
+    <input type="button" value="send" id="sendmessage" />
+    <ul id="discussion"></ul>
+</div>
+
