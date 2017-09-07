@@ -30,5 +30,10 @@ namespace SignalRPushSQLServer.Controllers
             context.Clients.All.broadcastMessage("Admin", msg);
             return View();
         }
+
+
+
+
+
     }
 }

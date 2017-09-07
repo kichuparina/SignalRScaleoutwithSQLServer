@@ -18,5 +18,13 @@ namespace SignalRPushSQLServer
             // Call the broadcastMessage method to update clients.  
             Clients.All.broadcastMessage(name, message);
         }
+
+        public void Send(string name, string message, string connID)
+        {
+            Clients.Client(connID).push("senti");
+
+            ///Clients.User(connID).push("senti");
+        }
+             
     }
 }
