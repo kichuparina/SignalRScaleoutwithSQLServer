@@ -36,8 +36,8 @@ namespace SignalRPushSQLServer
                 // since this branch already runs under the "/signalr"
                 // path.
 
-                hubConfiguration.EnableDetailedErrors = true;
-                hubConfiguration.EnableJSONP = true;
+                hubConfiguration.EnableDetailedErrors = false;
+                hubConfiguration.EnableJSONP = false;
                 map.RunSignalR(hubConfiguration);
             });
             app.MapSignalR();

@@ -13,6 +13,13 @@ namespace SignalRPushSQLServer
             Clients.All.hello();
         }
 
+
+        public void Peer(string connID, string data)
+        {
+            Clients.Client(connID).GetPeerRequest(data);
+        }
+
+
         public void Send(string name, string message)
         {
             // Call the broadcastMessage method to update clients.  
@@ -25,6 +32,16 @@ namespace SignalRPushSQLServer
 
             ///Clients.User(connID).push("senti");
         }
+
+
+     
+
+
+
+
+
+
+
              
     }
 }
